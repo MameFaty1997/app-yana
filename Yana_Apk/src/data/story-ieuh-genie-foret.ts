@@ -1,0 +1,237 @@
+import { Story } from './stories';
+
+export const storyIeuhGenieForet: Story = {
+    id: 'ieuh-genie-foret',
+    title: "Le génie de la forêt",
+    subtitle: 'Contes et légendes',
+    ethnie: "Amériques",
+    ethnieImg: "illustration-village.png",
+    difficulty: 'moyen',
+    ageMin: 8,
+    readingTime: 6,
+    coverColor: '#388E3C',
+    moralLesson: "La générosité envers les plus démunis, même lorsq'uon est soi-même dans la peine, est souvent récompensée.",
+    scenes: [
+        {
+            id: 'scene-01',
+            paragraph: "Il était une fois un pauvre fermier et sa femme qui travaillaient très dur sur leur lopin de terre. Le sol était tellement sec que leurs outils se cassaient souvent et qu'à chaque coup, un nuage de poussière s'élevait de la terre. Ils gagnaient donc juste de quoi vivre. Rien de superflu chez José et Anina ; malgré tout, c'était des gens très gentils et heureux de vivre.",
+            audioPath: 'story-ieuh-genie-foret-01.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'top',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-02',
+            paragraph: "Un jour, Anina reçut la visite d'un voisin qui lui dit qu'à une journée de marche de chez eux, un riche fermier ne pouvait trouver suffisamment de travailleurs pour l'aider à la récolte. Elle proposa à son mari : « Pourquoi n'irions-nous pas aider ce fermier ? Ici, nous mourons presque de faim. Chez lui, nous pourrions gagner assez d'argent pour vivre décemment. » Son mari la regarda, préoccupé, et lui dit sur le ton de la confidence : « Je ne dis pas non, mais ne sais-tu pas que cette région est habitée par le grand génie de la forêt ? C'est un ogre immense, poilu, à la barbe rouge sang et aux yeux de jais qui lancent des éclairs. Il dévore tous les hommes qu'il rencontre et oblige les femmes à travailler pour lui. Le danger n'est écarté que l'après-midi, car c'est à ce moment qu'il dort. Ça ne m'étonne pas que ce fermier ne trouve plus suffisamment de gens pour rentrer la récolte. Tout le monde a peur. Je ne pense pas que ce soit une bonne idée d'aller habiter aussi près d'un tel monstre.",
+            audioPath: 'story-ieuh-genie-foret-02.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'bottom',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-03',
+            paragraph: "— Moi, je n'ai pas peur ! dit Anina, en riant. Je resterai à l'intérieur et je n'irai faire les courses que l'après-midi. Je t'en prie, allons-y. Je pense que c'est la meilleure chose qui puisse nous arriver ! »",
+            audioPath: 'story-ieuh-genie-foret-03.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'full',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-04',
+            paragraph: "Fatigué d'entendre sa femme lui dire tous les bénéfices qu'ils pourraient tirer de leur nouvelle situation, José finit par accepter. Ils emballèrent leurs maigres affaires et quittèrent leur misérable chaumière en quête d'une vie meilleure. Après un jour de marche, ils arrivèrent chez le riche fermier. Celui-ci possédait une magnifique ferme située loin de la forêt du génie. En outre, de nombreux hommes faisaient des rondes afin d'empêcher le génie d'entrer. On donna immédiatement du travail à José aux champs et le fermier leur indiqua une maisonnette à l'orée de la forêt, où ils pourraient habiter.",
+            audioPath: 'story-ieuh-genie-foret-04.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'top',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-05',
+            paragraph: "« Vous pourrez vivre ici en toute tranquillité, dit le fermier à Anina. Veille toutefois à rester à l'intérieur. Ne sors que l'après-midi, car cest le moment où le génie de la forêt se repose. Je vous ferai apporter de la nourriture tous les jours par mes hommes afin que vous ne couriez aucun danger. » Et c'est ce qui se passa. Chaque jour, les hommes de la ferme leur apportaient des vivres. José gagnait bien sa vie en travaillant aux champs et ils étaient très heureux. Ils n'avaient pas aperçu le génie de la forêt et Anina en venait à douter de son existence.",
+            audioPath: 'story-ieuh-genie-foret-05.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'bottom',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-06',
+            paragraph: "Mais elle se trompait ! Caché dans la forêt, le génie l'avait déjà observée à plusieurs reprises. Il en était même tombé un peu amoureux. Toutefois, il ne pouvait s'approcher d'elle, car elle restait toujours aux alentours de la maison. Un jour, il y avait tellement de travail à la ferme que le fermier avait complètement oublié d'envoyer ses hommes porter de la farine et des haricots à la maisonnette. Anina se tracassait. Quand vint l'après-midi, elle voulut se rendre à la ferme elle-même pour aller chercher de quoi manger.",
+            audioPath: 'story-ieuh-genie-foret-06.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'full',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-07',
+            paragraph: "« Reste donc ici, lui dit José, inquiet. Imagine que tu rencontres le génie et qu'il t'emmène. Que ferais-je sans toi ? » Mais Anina se moqua de lui. « C'est l'après-midi, répondit Anina. Le génie est en train de dormir. Il n'y a aucun danger. Je rentrerai bien avant la tombée de la nuit. Ne t'inquiète pas. À tout à l'heure. »",
+            audioPath: 'story-ieuh-genie-foret-07.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'top',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-08',
+            paragraph: "Elle prit son grand panier et partit. Elle suivit gaiement le long chemin qui menait à la grande ferme. Le fermier sursauta lorsqu'il la vit arriver. « Ne m'en veux pas, dit-il à Anina. Il y avait tellement de travail ! Je vais te donner le repas tout de suite. Tu ferais peut-être bien de dormir chez nous, car si tu pars maintenant, tu ne seras de retour chez toi que le soir tombé. Pense au génie de la forêt, petite ! » Mais Anina ne voulut pas passer la nuit chez le fermier. Elle avait peur que José s'inquiète. Elle prit rapidement le chemin du retour. Soucieuse, elle regardait parfois le soleil qui descendait à l'horizon. Alors qu'elle était presque arrivée, le génie de la forêt jaillit de derrière un gros arbre et l'attrapa. Anina résista de toutes ses forces, mais ce fut peine perdue. Le génie l'emmena dans sa cabane au fin fond de la forêt. Là, Anina dut lui faire la lessive et la cuisine.",
+            audioPath: 'story-ieuh-genie-foret-08.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'bottom',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-09',
+            paragraph: "José était déjà rentré de son travail et attendait avec inquiétude le retour de sa femme. La nuit tombée, il partit à sa recherche. À l'orée de la forêt, il découvrit son panier à provisions rempli de vivres. Il eut très peur, car il était désormais sûr qu'Anina avait été enlevée par le génie de la forêt. Tristement, il ramassa le panier et retourna chez eux. Il faisait bien trop noir pour partir à sa recherche.",
+            audioPath: 'story-ieuh-genie-foret-09.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'full',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-10',
+            paragraph: "Sur le chemin du retour, il rencontra un vieux mendiant qui marchait à l'aide d'un bâton et qui lui demanda un peu de nourriture. « Accompagnez-moi, répondit José gentiment, je vous préparerai quelque chose à manger. » Pendant que le vieux mendiant se restaurait, José lui raconta ses mésaventures.",
+            audioPath: 'story-ieuh-genie-foret-10.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'top',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-11',
+            paragraph: "« Si vous m'autorisez à dormir ici, je vous aiderai demain à trouver la cabane du génie », proposa le mendiant. José le regarda d'un air incrédule. « Ne craignez-vous pas qu'il nous dévore ? » lui demanda-t-il, inquiet. Le mendiant secoua la tête en riant. « N'ayez pas peur, répondit-il. Je suis peut-être vieux, mais je ne suis pas encore tout à fait inutile. Patientez un peu. »",
+            audioPath: 'story-ieuh-genie-foret-11.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'bottom',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-12',
+            paragraph: "Le lendemain matin, les deux hommes partirent de bonne heure. Ils s'enfoncèrent dans la forêt. Après de longues recherches, ils découvrirent enfin la cabane du génie. Ils se dissimulèrent derrière quelques buissons. José vit Anina sortir de la cabane et vider un seau d'eau. Elle était donc bien là. Quant au génie, il restait invisible. « Il est peut-être parti chasser », dit José et il se dirigea vers la petite habitation pour aller chercher Anina. Soudain, le génie jaillit de derrière la cabane en poussant un cri assourdissant. Il s'était caché afin de surprendre José. « Ah, je vais me régaler doublement ! s'exclama le génie. Enfin, pas tout à fait : l'un des deux est tout rabougri. »",
+            audioPath: 'story-ieuh-genie-foret-12.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'full',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-13',
+            paragraph: "Il saisit les deux hommes de ses mains poilues. José cria, mais le vieux mendiant n'avait pas peur du tout. « Si tu ne nous lâches pas, je te fais mordre par un serpent », dit-il, fâché. Le génie libéra immédiatement les deux hommes et regarda autour de lui. « Je ne vois aucun serpent. Tu me prends pour un imbécile ! maugréa-t-il. Viens ici, que je te mange le premier. Je garde le savoureux jeune homme pour la fin. »",
+            audioPath: 'story-ieuh-genie-foret-13.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'top',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-14',
+            paragraph: "Il tendit la main vers le vieil homme, mais au même moment, ce dernier jeta son bâton sur le sol. Le bâton se changea immédiatement en un gros serpent sifflant. Le génie eut très peur et n'osa plus bouger, car rien ne le terrifiait plus que les serpents. Il mit ses grandes mains devant ses yeux. À présent, il ressemblait plus à un enfant effrayé qu'à un redoutable génie de la forêt.",
+            audioPath: 'story-ieuh-genie-foret-14.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'bottom',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-15',
+            paragraph: "« Éloigne ce serpent ! Éloigne cet affreux serpent ! s'écria-t-il avec effroi.",
+            audioPath: 'story-ieuh-genie-foret-15.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'full',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-16',
+            paragraph: "— Je ne le ferai que si tu promets de partir d'ici, répondit le vieux mendiant. Tu dois partir au-delà des montagnes et ne plus jamais revenir. Si tu le promets, je changerai à nouveau le serpent en bâton. — D'accord ! D'accord ! Je partirai ! » répondit le génie de la forêt d'une voix tremblante.",
+            audioPath: 'story-ieuh-genie-foret-16.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'top',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-17',
+            paragraph: "Le vieux mendiant sourit. « N'oublie pas ! le prévint-il. Si tu reviens importuner ces pauvres gens, je t'enverrai dix de ces serpents. » Il prit le serpent par la queue et celui-ci se changea immédiatement en bâton. Le génie fit rapidement son baluchon tout en pleurnichant. De temps en temps, il jetait un coup d'œil effrayé au vieux mendiant, mais celui-ci se contentait de l'observer calmement.",
+            audioPath: 'story-ieuh-genie-foret-17.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'bottom',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-18',
+            paragraph: "Un peu plus tard, le génie partit en direction des hautes montagnes que le vieil homme lui avait indiquées. Contente et soulagée, Anina tomba dans les bras de son mari. Sans attendre, le mendiant mit le feu à la cabane du génie. « S'il se retourne et voit la fumée, il saura qu'il n'a plus de maison et qu'il ne peut donc plus dormir ici », expliqua-t-il.",
+            audioPath: 'story-ieuh-genie-foret-18.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'full',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-19',
+            paragraph: "Heureux, ils se dirigèrent vers leur maison. Le vieil homme resta encore quelques jours chez José et Anina. Mais un beau matin, il partit sans raison aucune et nul ne le revit jamais. José et Anina coulèrent des jours heureux.",
+            audioPath: 'story-ieuh-genie-foret-19.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'top',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }, {
+            id: 'scene-20',
+            paragraph: "Depuis le départ du génie, de plus en plus de gens venaient travailler dans cette région du pays. On construisit plus de fermes, des magasins et des écoles. Le fermier offrit à José un meilleur emploi : il devait diriger le travail de tous les nouveaux arrivants. Le fermier le payait bien, car depuis qu'il avait suffisamment de personnes pour cultiver la terre, il gagnait assez d'argent pour payer à ses employés un bon salaire. José et Anina étaient donc très satisfaits et lorsqu'ils eurent un enfant l'année suivante, ils furent au comble du bonheur. Ils vécurent longtemps à l'orée de la forêt.",
+            audioPath: 'story-ieuh-genie-foret-20.mp3',
+            illustration: {
+                prompt: "",
+                altText: "Illustration de la scène",
+                position: 'bottom',
+            },
+            footnotes: [],
+            vocabWords: [],
+        }
+    ],
+};
