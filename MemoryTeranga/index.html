@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Teranga - Diversité Culturelle Sénégaise</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #1a0e05;
+            --orange: #e85d04;
+            --gold: #f4a026;
+            --cream: #fdf3e3;
+            --green: #2d6a4f;
+            --red: #9b2226;
+            --kente-pattern: repeating-linear-gradient(
+                90deg, 
+                var(--gold) 0px, var(--gold) 10px, 
+                var(--red) 10px, var(--red) 20px, 
+                var(--green) 20px, var(--green) 30px, 
+                var(--bg-color) 30px, var(--bg-color) 40px
+            );
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--cream);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at center, rgba(232, 93, 4, 0.1) 0%, transparent 70%);
+        }
+
+        .kente-bar {
+            height: 15px;
+            width: 100%;
+            background: var(--kente-pattern);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        header {
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: 'Cinzel Decorative', serif;
+            color: var(--gold);
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 5px;
+        }
+
+        h2 {
+            font-size: 1.2rem;
+            font-weight: 400;
+            color: var(--orange);
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+
+        /* Menu */
+        .level-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .level-btn {
+            background: rgba(26, 14, 5, 0.8);
+            border: 2px solid var(--gold);
+            color: var(--cream);
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(244, 160, 38, 0.2);
+        }
+
+        .level-btn:hover {
+            background: var(--gold);
+            color: var(--bg-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(244, 160, 38, 0.5);
+        }
+
+        /* Game Header */
+        .game-header {
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(244, 160, 38, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .stat {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .stat-val {
+            color: var(--gold);
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        /* Timer Bar */
+        .timer-container {
+            width: 100%;
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            margin-bottom: 20px;
+            max-width: 900px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: var(--green);
+            transition: width 1s linear, background-color 0.5s ease;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            gap: 15px;
+            width: 100%;
+            max-width: 900px;
+            justify-content: center;
+            perspective: 1000px;
+        }
+        
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .grid-6 { grid-template-columns: repeat(6, 1fr); }
+        .grid-8 { grid-template-columns: repeat(8, 1fr); }
+
+        @media (max-width: 600px) {
+            .grid-4 { grid-template-columns: repeat(3, 1fr); }
+            .grid-6 { grid-template-columns: repeat(4, 1fr); }
+            .grid-8 { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        /* Card */
+        .card {
+            width: 100%;
+            aspect-ratio: 3/4;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1);
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        .card.flipped, .card.matched {
+            transform: rotateY(180deg);
+            cursor: default;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            overflow: hidden;
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* Card Back */
+        .card-back {
+            background: repeating-linear-gradient(45deg, var(--bg-color), var(--bg-color) 10px, #2a1b11 10px, #2a1b11 20px);
+            border: 2px solid var(--gold);
+        }
+
+        .card-back::after {
+            content: "Teranga";
+            font-family: 'Cinzel Decorative', serif;
+            color: var(--gold);
+            font-size: 1.2rem;
+            position: absolute;
+            background: rgba(26, 14, 5, 0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        /* Card Front - Image */
+        .card-front-img {
+            background: var(--cream);
+            transform: rotateY(180deg);
+            border: 2px solid var(--orange);
+        }
+
+        .card-img {
+            width: 100%;
+            height: 70%;
+            object-fit: cover;
+            border-bottom: 2px solid var(--orange);
+        }
+
+        .card-name {
+            height: 30%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--bg-color);
+            font-weight: 800;
+            font-size: 1rem;
+            width: 100%;
+            background: linear-gradient(to bottom, #fdf3e3, #e5d5b7);
+        }
+
+        /* Card Front - Text */
+        .card-front-text {
+            background: var(--bg-color);
+            transform: rotateY(180deg);
+            border: 2px solid var(--red);
+            background-image: radial-gradient(circle, rgba(155, 34, 38, 0.2) 0%, transparent 80%);
+        }
+
+        .card-local-word {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin-bottom: 10px;
+            font-family: 'Cinzel Decorative', serif;
+        }
+
+        .card-translation {
+            font-size: 0.9rem;
+            color: var(--cream);
+            font-style: italic;
+        }
+
+        /* Effects */
+        .stars-container {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            display: flex;
+            gap: 5px;
+            font-size: 2rem;
+            animation: floatUp 2s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(0.5); opacity: 1; }
+            50% { transform: translateY(-50px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-100px) scale(1); opacity: 0; }
+        }
+
+        /* Fact Popup */
+        #fact-popup {
+            position: fixed;
+            bottom: -150px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 500px;
+            background: rgba(26, 14, 5, 0.95);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            text-align: center;
+        }
+
+        #fact-popup.show {
+            bottom: 30px;
+        }
+
+        #fact-popup h3 {
+            color: var(--orange);
+            font-family: 'Cinzel Decorative', serif;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* End Overlay */
+        #end-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(26, 14, 5, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+
+        .end-modal {
+            background: var(--bg-color);
+            border: 3px solid var(--gold);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 50px rgba(244, 160, 38, 0.3);
+        }
+
+        .end-btn-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            color: var(--bg-color);
+            border: none;
+            padding: 12px 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+        }
+        
+        .btn-secondary {
+            background: transparent;
+            color: var(--gold);
+            border: 2px solid var(--gold);
+            padding: 12px 20px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="kente-bar"></div>
+    <header>
+        <h1>Memory Teranga</h1>
+        <h2>La Richesse des Ethnies du Sénégal</h2>
+    </header>
+
+    <!-- Écran Accueil -->
+    <div id="home-screen" class="screen active">
+        <p style="text-align: center; max-width: 600px; margin-bottom: 20px; font-size: 1.1rem; line-height: 1.6;">
+            Découvrez la diversité culturelle du Sénégal à travers ce jeu de mémoire.
+            Associez l'image à son ethnie ou à un mot de sa langue selon la difficulté !
+        </p>
+        
+        <div class="level-menu">
+            <button class="level-btn" onclick="startGame('debutant')">
+                <span>🌱 Débutant</span>
+                <span style="font-size: 0.8rem; color: var(--orange);">4 paires</span>
+            </button>
+            <button class="level-btn" onclick="startGame('intermediaire')">
+                <span>🌳 Intermédiaire</span>
+                <span style="font-size: 0.8rem; color: var(--orange);">8 paires</span>
+            </button>
+            <button class="level-btn" onclick="startGame('expert')">
+                <span>🦁 Expert</span>
+                <span style="font-size: 0.8rem; color: var(--orange);">12 paires</span>
+            </button>
+            <button class="level-btn" onclick="startGame('extreme')">
+                <span>🔥 Extrême</span>
+                <span style="font-size: 0.8rem; color: var(--orange);">24 paires</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Écran Jeu -->
+    <div id="game-screen" class="screen">
+        <div class="timer-container">
+            <div id="timer-bar" class="timer-bar"></div>
+        </div>
+
+        <div class="game-header">
+            <div class="stat">Coups : <span id="tries-count" class="stat-val">0</span></div>
+            <div class="stat">Paires : <span id="pairs-count" class="stat-val">0</span>/<span id="total-pairs" class="stat-val">0</span></div>
+            <div class="stat">Temps : <span id="time-left" class="stat-val">0</span>s</div>
+        </div>
+
+        <div id="grid" class="grid grid-4">
+            <!-- Les cartes sont générées en JS -->
+        </div>
+        
+        <div style="margin-top: 30px;">
+            <button class="btn-secondary" onclick="quitGame()">Quitter</button>
+        </div>
+    </div>
+
+    <!-- Popup Anecdote -->
+    <div id="fact-popup">
+        <h3 id="fact-title">Le Saviez-vous ?</h3>
+        <p id="fact-text">L'anecdote apparaîtra ici.</p>
+    </div>
+
+    <!-- Écran Fin -->
+    <div id="end-overlay">
+        <div class="end-modal">
+            <h1 id="end-title" style="margin-bottom: 10px;">Victoire !</h1>
+            <p id="end-desc" style="margin-bottom: 20px; font-size: 1.1rem;">Bravo, vous avez terminé ce niveau.</p>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <div style="margin-bottom: 10px;">Efficacité : <span id="score-efficiency" style="color: var(--gold); font-weight: bold; font-size: 1.2rem;">100%</span></div>
+                <div>Temps Restant : <span id="score-time" style="color: var(--orange); font-weight: bold;">0</span>s</div>
+            </div>
+
+            <div class="end-btn-group">
+                <button class="btn-secondary" onclick="quitGame()">Menu</button>
+                <button class="btn-primary" onclick="restartLevel()">Rejouer</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // BASE DE DONNÉES (À connecter)
+        // Remplacer par l'appel à la base de données externe
+        const dbWords = [
+            { id: "e1", name: "Baïnouk", img: "illustration-bainouk.png", word: "Siika", translation: "L'âme / Esprit", fact: "Les Baïnouks sont considérés comme l'un des plus anciens peuples de la Casamance, maîtres des forêts sacrées." },
+            { id: "e2", name: "Balante", img: "illustration-balante.png", word: "Kéla", translation: "L'initié", fact: "Chez les Balantes, le rite d'initiation permet de passer à l'âge adulte et de devenir un véritable guerrier." },
+            { id: "e3", name: "Bambara", img: "illustration-bambara.png", word: "Badenya", translation: "Cohésion / Maternité", fact: "Le badenya représente la solidarité et l'entente entre les enfants d'une même mère dans la culture Mandingue." },
+            { id: "e4", name: "Bassari", img: "illustration-bassari.png", word: "Oluk", translation: "Le masque", fact: "Le pays Bassari, classé au patrimoine mondial de l'UNESCO, est célèbre pour ses rituels masqués annuels." },
+            { id: "e5", name: "Diola", img: "illustration-diola.png", word: "Awena", translation: "La Reine / Prêtresse", fact: "La société Diola a été profondément marquée par la figure d'Aline Sitoé Diatta, héroïne de la résistance." },
+            { id: "e6", name: "Mandinka", img: "illustration-mandinka.png", word: "Jaliya", translation: "L'art du griot", fact: "Les Mandingues ont répandu la culture des griots, gardiens de la mémoire et maîtres de la Kora." },
+            { id: "e7", name: "Manjack", img: "illustration-manjack.png", word: "Ujiak", translation: "Le Tisserand", fact: "Le peuple Manjack détient un savoir-faire mondialement reconnu dans le tissage traditionnel de pagnes complexes." },
+            { id: "e8", name: "Mankagne", img: "illustration-mankagne.png", word: "Pëc", translation: "La danse sacrée", fact: "Les Mankagnes vivent en parfaite harmonie avec leurs autels familiaux appelés 'Pëshë'." },
+            { id: "e9", name: "Peulh", img: "illustration-peulh.png", word: "Pulaaku", translation: "Code d'honneur", fact: "Le Pulaaku est le code de conduite Peulh, axé sur la patience, le courage et la sagesse pastorale." },
+            { id: "e10", name: "Sérère", img: "illustration-serere.png", word: "Roog", translation: "Le Dieu suprême", fact: "Les Sérères pratiquent une cosmogonie complexe où l'étoile Sirius joue un rôle fondamental dans le calendrier agricole." },
+            { id: "e11", name: "Soninké", img: "illustration-soninke.png", word: "Xusa", translation: "La maison familiale", fact: "Historiquement bâtisseurs du grand empire du Wagadou (Ghana antique), les Soninkés sont d'excellents commerçants." },
+            { id: "e12", name: "Wolof", img: "illustration-wolof.png", word: "Teranga", translation: "L'Hospitalité", fact: "La Teranga wolof est devenue le symbole national du Sénégal, invitant à partager le repas avec l'étranger." }
+        ];
+
+        let wordList = [];
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let tries = 0;
+        let totalPairs = 0;
+        let gameMode = 'debutant'; // debutant (name), intermediaire (word)
+        
+        let timerMax = 120;
+        let timeLeft = 120;
+        let timerInterval = null;
+        let factTimeout = null;
+
+        function startGame(level) {
+            document.getElementById('home-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            
+            let pairsNeeded = 4;
+            timerMax = 120;
+            switch(level) {
+                case 'debutant': pairsNeeded = 4; timerMax = 60; gameMode = 'name'; break;
+                case 'intermediaire': pairsNeeded = 8; timerMax = 120; gameMode = 'word'; break;
+                case 'expert': pairsNeeded = 12; timerMax = 180; gameMode = 'word'; break;
+                case 'extreme': pairsNeeded = 24; timerMax = 300; gameMode = 'mixed'; break;
+            }
+
+            // Générer la liste
+            wordList = [];
+            let pool = [...dbWords].sort(() => 0.5 - Math.random());
+            
+            for(let i = 0; i < pairsNeeded; i++) {
+                // S'il faut plus de 12 paires (extreme), on réutilise le pool avec des modes différents
+                const data = pool[i % pool.length];
+                
+                let modeForThisPair = gameMode;
+                if (gameMode === 'mixed') {
+                    modeForThisPair = i < 12 ? 'name' : 'word';
+                }
+
+                wordList.push({ ...data, _pairId: i, _mode: modeForThisPair });
+            }
+
+            resetStats(pairsNeeded);
+            generateGrid();
+            startTimer();
+        }
+
+        function resetStats(pairsNeeded) {
+            matchedPairs = 0;
+            tries = 0;
+            totalPairs = pairsNeeded;
+            timeLeft = timerMax;
+            flippedCards = [];
+
+            document.getElementById('tries-count').innerText = tries;
+            document.getElementById('pairs-count').innerText = matchedPairs;
+            document.getElementById('total-pairs').innerText = totalPairs;
+            document.getElementById('time-left').innerText = timeLeft;
+            
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.style.width = '100%';
+            timerBar.style.backgroundColor = 'var(--green)';
+        }
+
+        function generateGrid() {
+            const gridEl = document.getElementById('grid');
+            gridEl.className = 'grid';
+            
+            if (totalPairs <= 4) gridEl.classList.add('grid-4');
+            else if (totalPairs <= 12) gridEl.classList.add('grid-6');
+            else gridEl.classList.add('grid-8');
+
+            gridEl.innerHTML = '';
+            cards = [];
+
+            wordList.forEach((item) => {
+                // Card 1 : Image
+                cards.push({
+                    type: 'img',
+                    content: `<img src="${item.img}" alt="${item.name}" class="card-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'100\\' height=\\'100\\'><rect fill=\\'%23fdf3e3\\' width=\\'100\\' height=\\'100\\'/><text x=\\'50\\' y=\\'50\\' fill=\\'%231a0e05\\' text-anchor=\\'middle\\' alignment-baseline=\\'middle\\'>Photo</text></svg>'"><div class="card-name">${item.name}</div>`,
+                    id: item._pairId,
+                    data: item
+                });
+
+                // Card 2 : Text (Name or Translated Word based on mode)
+                let textContent = '';
+                if (item._mode === 'name') {
+                    textContent = `<div class="card-local-word">${item.name}</div>`;
+                } else {
+                    textContent = `<div class="card-local-word">${item.word}</div><div class="card-translation">${item.translation}</div>`;
+                }
+
+                cards.push({
+                    type: 'text',
+                    content: textContent,
+                    id: item._pairId,
+                    data: item
+                });
+            });
+
+            // Shuffle
+            cards.sort(() => 0.5 - Math.random());
+
+            // Render
+            cards.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card';
+                cardEl.dataset.index = index;
+                cardEl.onclick = () => flipCard(cardEl, card);
+
+                const frontClass = card.type === 'img' ? 'card-front-img' : 'card-front-text';
+
+                cardEl.innerHTML = `
+                    <div class="card-face card-back"></div>
+                    <div class="card-face ${frontClass}">
+                        ${card.content}
+                    </div>
+                `;
+                gridEl.appendChild(cardEl);
+            });
+        }
+
+        function flipCard(cardEl, cardObj) {
+            if (cardEl.classList.contains('flipped') || cardEl.classList.contains('matched') || flippedCards.length >= 2) return;
+
+            cardEl.classList.add('flipped');
+            flippedCards.push({ el: cardEl, obj: cardObj });
+
+            if (flippedCards.length === 2) {
+                tries++;
+                document.getElementById('tries-count').innerText = tries;
+                checkMatch();
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = flippedCards;
+
+            if (card1.obj.id === card2.obj.id) {
+                // Match !
+                card1.el.classList.add('matched');
+                card2.el.classList.add('matched');
+                matchedPairs++;
+                document.getElementById('pairs-count').innerText = matchedPairs;
+                
+                showFact(card1.obj.data);
+                spawnStars(card1.el);
+                spawnStars(card2.el);
+
+                flippedCards = [];
+
+                if (matchedPairs === totalPairs) {
+                    setTimeout(endGame, 1000, true);
+                }
+            } else {
+                // No Match
+                setTimeout(() => {
+                    card1.el.classList.remove('flipped');
+                    card2.el.classList.remove('flipped');
+                    flippedCards = [];
+                }, 1000);
+            }
+        }
+
+        function spawnStars(cardEl) {
+            const rect = cardEl.getBoundingClientRect();
+            const container = document.createElement('div');
+            container.className = 'stars-container';
+            container.style.left = rect.left + (rect.width / 2) - 20 + 'px';
+            container.style.top = rect.top + 'px';
+            container.innerHTML = '✨⭐🌟';
+            document.body.appendChild(container);
+
+            setTimeout(() => container.remove(), 2000);
+        }
+
+        function showFact(data) {
+            const popup = document.getElementById('fact-popup');
+            document.getElementById('fact-title').innerText = data.name;
+            document.getElementById('fact-text').innerText = data.fact;
+            
+            popup.classList.add('show');
+            if(factTimeout) clearTimeout(factTimeout);
+            factTimeout = setTimeout(() => popup.classList.remove('show'), 4000);
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('time-left').innerText = timeLeft;
+                
+                const percent = (timeLeft / timerMax) * 100;
+                const bar = document.getElementById('timer-bar');
+                bar.style.width = percent + '%';
+
+                if (percent < 30) bar.style.backgroundColor = 'var(--red)';
+                else if (percent < 60) bar.style.backgroundColor = 'var(--orange)';
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    endGame(false);
+                }
+            }, 1000);
+        }
+
+        function endGame(win) {
+            clearInterval(timerInterval);
+            document.getElementById('end-overlay').style.display = 'flex';
+            
+            if (win) {
+                const efficiency = Math.round((totalPairs / tries) * 100);
+                document.getElementById('end-title').innerText = "Victoire ! FÉLICITATIONS";
+                document.getElementById('end-title').style.color = 'var(--gold)';
+                document.getElementById('end-desc').innerText = "Vous protégez la mémoire des peuples.";
+                document.getElementById('score-efficiency').innerText = efficiency + "%";
+                document.getElementById('score-time').innerText = timeLeft;
+            } else {
+                document.getElementById('end-title').innerText = "Temps Écoulé";
+                document.getElementById('end-title').style.color = 'var(--red)';
+                document.getElementById('end-desc').innerText = "La sagesse demande du temps. Essayez encore !";
+                document.getElementById('score-efficiency').innerText = "0%";
+                document.getElementById('score-time').innerText = "0";
+            }
+        }
+
+        function restartLevel() {
+            document.getElementById('end-overlay').style.display = 'none';
+            
+            // Re-find the level logic based on previous setting
+            let currentLevel = 'debutant';
+            if (totalPairs === 8) currentLevel = 'intermediaire';
+            if (totalPairs === 12) currentLevel = 'expert';
+            if (totalPairs === 24) currentLevel = 'extreme';
+            
+            startGame(currentLevel);
+        }
+
+        function quitGame() {
+            clearInterval(timerInterval);
+            document.getElementById('end-overlay').style.display = 'none';
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('home-screen').classList.add('active');
+        }
+
+    </script>
+</body>
+</html>
