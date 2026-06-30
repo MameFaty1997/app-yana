@@ -28,13 +28,12 @@ const isSmallDevice = width < 375;
 
 interface ProfileScreenProps {
     user: UserState;
-    setUser: Dispatch<SetStateAction<UserState>>;
+    setUser: React.Dispatch<React.SetStateAction<UserState>>;
     t: (key: TranslationKey) => string;
-    onShowSubscription?: () => void;
-    onShowSettings?: () => void;
+    onShowSettings: () => void;
 }
 
-const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, setUser, t, onShowSubscription, onShowSettings }) => {
+const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, setUser, t, onShowSettings }) => {
     const navigation = useNavigation();
     const [isAvatarModalVisible, setIsAvatarModalVisible] = useState(false);
     const [isMarketplaceVisible, setIsMarketplaceVisible] = useState(false);
@@ -161,12 +160,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, setUser, t, onShowS
                         </View>
                     </View>
 
-                    {/* Plan Badge */}
-                    <View style={styles.planBadgeContainer}>
-                        <View style={styles.planBadge}>
-                            <Text style={styles.planBadgeText}>{getPlanBadge(user.user_plan)}</Text>
-                        </View>
-                    </View>
+
 
                     {/* Stats Grid Buttons */}
                     <View style={styles.statsGrid}>
@@ -235,12 +229,6 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, setUser, t, onShowS
 
                 {/* Bottom Menu Grid */}
                 <View style={styles.menuGrid}>
-                    <TouchableOpacity style={styles.menuItem} onPress={onShowSubscription}>
-                        <View style={styles.menuIconBox}>
-                            <Text style={styles.menuIcon}>💳</Text>
-                        </View>
-                        <Text style={styles.menuLabel}>{t('my_offer')}</Text>
-                    </TouchableOpacity>
 
                     <TouchableOpacity
                         style={styles.menuItem}
@@ -301,7 +289,7 @@ const ProfileScreen: React.FC<ProfileScreenProps> = ({ user, setUser, t, onShowS
                     setUser={setUser}
                     onClose={() => setIsMarketplaceVisible(false)}
                     t={t}
-                    onShowSubscription={onShowSubscription}
+
                 />
             </Modal>
 

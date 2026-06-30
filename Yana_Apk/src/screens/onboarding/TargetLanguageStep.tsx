@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     },
     cardTouch: {
         width: '48%',
-        aspectRatio: isSmallDevice ? 0.75 : 0.7,
+        aspectRatio: isSmallDevice ? 0.95 : 0.9,
         marginBottom: 15,
     },
     languageCard: {
@@ -253,11 +253,11 @@ const styles = StyleSheet.create({
     },
     infoBox: {
         backgroundColor: '#FFFFFF',
-        padding: 10,
+        padding: 8,
         alignItems: 'center',
         borderTopWidth: 1,
         borderTopColor: '#e0e0e0',
-        minHeight: isSmallDevice ? 80 : 100,
+        minHeight: isSmallDevice ? 60 : 75,
         justifyContent: 'center',
     },
     languageName: {

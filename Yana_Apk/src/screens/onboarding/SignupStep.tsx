@@ -5,6 +5,7 @@ import { Button, Input, Card } from '../../components/ui';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../../theme';
 import { TranslationKey } from '../../translations';
 import { firebaseAuth } from '../../services/firebase';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 375;
@@ -161,7 +162,7 @@ const SignupStep: React.FC<SignupStepProps> = ({
                             activeOpacity={0.8}
                             onPress={() => Alert.alert('Information', 'La connexion Google nécessite la configuration de client_id. Utilisez le téléphone pour le test.')}
                         >
-                            <Text style={styles.socialIcon}>🔍</Text>
+                            <FontAwesome5 name="google" size={18} color="#EA4335" />
                             <Text style={styles.socialBtnText}>Google</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
@@ -169,7 +170,7 @@ const SignupStep: React.FC<SignupStepProps> = ({
                             activeOpacity={0.8}
                             onPress={() => Alert.alert('Information', 'La connexion Apple sera disponible sur la version iOS.')}
                         >
-                            <Text style={styles.socialIcon}>🍎</Text>
+                            <FontAwesome5 name="apple" size={18} color="#000000" />
                             <Text style={styles.socialBtnText}>Apple</Text>
                         </TouchableOpacity>
                     </View>

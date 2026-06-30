@@ -28,16 +28,51 @@ import Constants from 'expo-constants';
 const { width, height } = Dimensions.get('window');
 const isSmallDevice = width < 375;
 
+const getFlagUrl = (codeOrEmojiOrId: string): string | undefined => {
+    const flagMap: Record<string, string> = {
+        'fr': 'fr',
+        'en': 'gb',
+        'de': 'de',
+        'ar': 'sa',
+        'ja': 'jp',
+        'ko': 'kr',
+        'es': 'es',
+        'wolof': 'sn',
+        'serer': 'sn',
+        'diola': 'sn',
+        'bainouk': 'sn',
+        'manjak': 'gw',
+        'balante': 'gw',
+        'mankagne': 'sn',
+        'mandinka': 'sn',
+        'bassari': 'sn',
+        'hassaniya': 'mr',
+        'saafi_saafi': 'sn',
+        'menik': 'sn',
+        '🇸🇳': 'sn',
+        '🇬🇼': 'gw',
+        '🇲🇷': 'mr',
+        '🇫🇷': 'fr',
+        '🇬🇧': 'gb',
+        '🇩🇪': 'de',
+        '🇸🇦': 'sa',
+        '🇯🇵': 'jp',
+        '🇰🇷': 'kr',
+        '🇪🇸': 'es',
+    };
+    const c = flagMap[codeOrEmojiOrId];
+    return c ? `https://flagcdn.com/w80/${c}.png` : undefined;
+};
+
 interface SettingsScreenProps {
     user: UserState;
     setUser: React.Dispatch<React.SetStateAction<UserState>>;
     t: (key: TranslationKey) => string;
     onClose: () => void;
-    onLogout?: () => void;
-    onShowSubscription?: () => void;
+    onLogout: () => void;
 }
 
-const SettingsScreen: React.FC<SettingsScreenProps> = ({ user, setUser, t, onClose, onLogout, onShowSubscription }) => {
+const SettingsScreen: React.FC<SettingsScreenProps> = ({ user, setUser, t, onClose, onLogout }) => {
     const [showConfirmModal, setShowConfirmModal] = React.useState(false);
     const [pendingLanguage, setPendingLanguage] = React.useState<string | null>(null);
     const [showInterfaceLangModal, setShowInterfaceLangModal] = React.useState(false);
@@ -56,13 +91,8 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ user, setUser, t, onClo
     ];
 
     const targetLanguagesList = LANGUAGES.map(l => {
-        const isPremium = user.user_plan === 'premium';
         const learnedLangs = Object.keys(user.languageProgressions || {});
-        const totalLangs = Array.from(new Set([...learnedLangs, user.currentLanguage || ''])).filter(Boolean);
-        const isFree = !user.user_plan || user.user_plan === 'freemium';
-        const canUnlockForFree = isFree && totalLangs.length < 3;
-
-        const isUnlocked = isPremium || learnedLangs.includes(l.id) || user.currentLanguage === l.id || canUnlockForFree;
+        const isUnlocked = learnedLangs.includes(l.id) || user.currentLanguage === l.id;
 
         return {
             id: l.id,
@@ -81,37 +111,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ user, setUser, t, onClo
         setShowTargetLangModal(false);
         if (langId === user.currentLanguage) return;
 
-        const isFree = !user.user_plan || user.user_plan === 'freemium';
         const learnedLangs = Object.keys(user.languageProgressions || {});
-        const totalLangs = Array.from(new Set([...learnedLangs, user.currentLanguage || ''])).filter(Boolean);
-
-        // If trying to select a language they *haven't* unlocked yet, and they've already unlocked 3
-        if (isFree && !totalLangs.includes(langId) && totalLangs.length >= 3) {
-            const userShells = user.shells || 0;
-            const caurisCost = 1000;
-
+        if (!learnedLangs.includes(langId) && langId !== user.currentLanguage) {
             Alert.alert(
-                t('limit_reached' as TranslationKey),
-                t('lang_limit_msg' as TranslationKey),
+                "Langue verrouillée",
+                "Vous devez d'abord acheter cette langue dans la boutique (Marketplace) pour 6 500 FCFA.",
                 [
-                    { text: t('cancel' as TranslationKey), style: 'cancel' },
-                    {
-                        text: t('subscription' as TranslationKey),
-                        onPress: onShowSubscription
-                    },
-                    {
-                        text: t('buy_lang_cauris' as TranslationKey),
-                        onPress: () => {
-                            if (userShells >= caurisCost) {
-                                setUser(prev => ({ ...prev, shells: (prev.shells || 0) - caurisCost }));
-                                Alert.alert("Succès", t('buy_lang_success' as TranslationKey));
-                                setPendingLanguage(langId);
-                                setShowConfirmModal(true);
-                            } else {
-                                Alert.alert("Erreur", t('insufficient_cauris' as TranslationKey));
-                            }
-                        }
-                    }
+                    { text: "OK", style: "default" }
                 ]
             );
             return;
@@ -252,28 +258,6 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ user, setUser, t, onClo
                         () => setShowTargetLangModal(true)
                     )}
 
-                    {/* Language Limit Info */}
-                    <View style={styles.divider} />
-                    <View style={styles.limitContainer}>
-                        <View style={styles.limitInfo}>
-                            <Text style={styles.limitLabel}>
-                                {(!user.user_plan || user.user_plan === 'freemium')
-                                    ? t('lang_limit_info_free').replace('{{count}}', Array.from(new Set([...Object.keys(user.languageProgressions || {}), user.currentLanguage || ''])).filter(Boolean).length.toString())
-                                    : t('lang_limit_info_premium')}
-                            </Text>
-                        </View>
-                        {(!user.user_plan || user.user_plan === 'freemium') && onShowSubscription && (
-                            <Pressable
-                                style={({ pressed }) => [
-                                    styles.unlockBtn,
-                                    pressed && { backgroundColor: '#FDE68A' } // Slightly darker yellow/gold
-                                ]}
-                                onPress={onShowSubscription}
-                            >
-                                <Text style={styles.unlockBtnText}>🔓 {t('unlock_all_languages')}</Text>
-                            </Pressable>
-                        )}
-                    </View>
                 </View>
 
                 {/* Audio Section */}
@@ -377,7 +361,11 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ user, setUser, t, onClo
                                     ]}
                                     onPress={() => handleLanguageChange(l.code)}
                                 >
-                                    <Text style={styles.dropdownFlag}>{l.flag}</Text>
+                                    {getFlagUrl(l.code) ? (
+                                        <Image source={{ uri: getFlagUrl(l.code) }} style={styles.dropdownFlagImage} />
+                                    ) : (
+                                        <Text style={styles.dropdownFlag}>{l.flag}</Text>
+                                    )}
                                     <Text style={[styles.dropdownName, user.interfaceLanguage === l.code && styles.dropdownNameSelected]}>{l.name}</Text>
                                     {user.interfaceLanguage === l.code && <Text style={styles.dropdownCheck}>✓</Text>}
                                 </Pressable>
@@ -420,7 +408,11 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ user, setUser, t, onClo
                                     ]}
                                     onPress={() => handleTargetLanguageChange(tl.id)}
                                 >
-                                    <Text style={[styles.dropdownFlag, !tl.isUnlocked && { opacity: 0.5 }]}>{tl.emoji}</Text>
+                                    {getFlagUrl(tl.id) ? (
+                                        <Image source={{ uri: getFlagUrl(tl.id) }} style={[styles.dropdownFlagImage, !tl.isUnlocked && { opacity: 0.5 }]} />
+                                    ) : (
+                                        <Text style={[styles.dropdownFlag, !tl.isUnlocked && { opacity: 0.5 }]}>{tl.emoji}</Text>
+                                    )}
                                     <Text style={[
                                         styles.dropdownName,
                                         user.currentLanguage === tl.id && styles.dropdownNameSelected,
@@ -868,6 +860,12 @@ const styles = StyleSheet.create({
     dropdownFlag: {
         fontSize: 24,
         marginRight: 15,
+    },
+    dropdownFlagImage: {
+        width: 30,
+        height: 20,
+        marginRight: 15,
+        borderRadius: 3,
     },
     dropdownName: {
         flex: 1,

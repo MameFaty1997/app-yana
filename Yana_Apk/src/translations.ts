@@ -58,7 +58,7 @@ export const translations = {
     goal_easy: "Tranquille",
     goal_medium: "Sérieux",
     goal_hard: "Intense",
-    level_beginner: "Débutant",
+    level_beginner: "Débutant 0",
     level_intermediate: "Intermédiaire",
     level_advanced: "Avancé",
     level_native: "Natif",

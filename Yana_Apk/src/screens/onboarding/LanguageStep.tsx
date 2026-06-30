@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../../components/ui';
 import { COLORS, TYPOGRAPHY, SPACING, BORDER_RADIUS, SHADOWS } from '../../theme';
@@ -25,6 +25,20 @@ const LANGUAGES = [
     { code: 'ko' as Language, name: '한국어', flag: '🇰🇷' },
     { code: 'es' as Language, name: 'Español', flag: '🇪🇸' },
 ];
+
+const getFlagUrl = (code: string): string | undefined => {
+    const flagMap: Record<string, string> = {
+        'fr': 'fr',
+        'en': 'gb',
+        'de': 'de',
+        'ar': 'sa',
+        'ja': 'jp',
+        'ko': 'kr',
+        'es': 'es',
+    };
+    const c = flagMap[code];
+    return c ? `https://flagcdn.com/w80/${c}.png` : undefined;
+};
 
 const LanguageStep: React.FC<LanguageStepProps> = ({
     selectedLanguage,
@@ -62,7 +76,11 @@ const LanguageStep: React.FC<LanguageStepProps> = ({
                                     isSelected && styles.selectedCard
                                 ]}>
                                     <View style={styles.flagCircle}>
-                                        <Text style={styles.flag}>{lang.flag}</Text>
+                                        {getFlagUrl(lang.code) ? (
+                                            <Image source={{ uri: getFlagUrl(lang.code) }} style={styles.flagImage} />
+                                        ) : (
+                                            <Text style={styles.flag}>{lang.flag}</Text>
+                                        )}
                                     </View>
                                     <Text style={[
                                         styles.languageName,
@@ -160,6 +178,11 @@ const styles = StyleSheet.create({
     },
     flag: {
         fontSize: isSmallDevice ? 24 : 32,
+    },
+    flagImage: {
+        width: isSmallDevice ? 36 : 48,
+        height: isSmallDevice ? 24 : 32,
+        borderRadius: 4,
     },
     languageName: {
         fontSize: isSmallDevice ? 14 : 16,

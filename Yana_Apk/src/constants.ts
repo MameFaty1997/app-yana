@@ -46,7 +46,7 @@ export const INITIAL_USER_STATE: UserState = {
     dailyGoal: 10,
     age: '',
     experienceLevel: 'Débutant',
-    user_plan: 'freemium' as const,
+    user_plan: 'premium' as const,
     studentCardVerified: false,
     lessonScores: {},
     offlineExercises: {},

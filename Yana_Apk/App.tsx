@@ -6,7 +6,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserState, Unit, Lesson } from './src/types';
+import { UserState } from './src/types';
 import { INITIAL_USER_STATE } from './src/constants';
 import { translations, TranslationKey } from './src/translations';
 import { syncUserProfile, firebaseAuth } from './src/services/firebase';
@@ -14,14 +14,6 @@ import { audioService } from './src/services/audioService';
 import Constants from 'expo-constants';
 import { isTablet } from './src/utils/responsive';
 import { LANGUAGES } from './src/constants';
-import {
-  UNIT_0_STATIC_DATA,
-  UNIT_1_STATIC_DATA,
-  UNIT_2_STATIC_DATA,
-  UNIT_3_STATIC_DATA,
-  UNIT_4_STATIC_DATA,
-  UNIT_5_STATIC_DATA
-} from './src/data/reference/units/index';
 
 // Import screens
 import LearnScreen from './src/screens/LearnScreen';
@@ -29,7 +21,6 @@ import CommunityScreen from './src/screens/CommunityScreen';
 import TutoringScreen from './src/screens/TutoringScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import OnboardingScreen from './src/screens/OnboardingScreen';
-import SubscriptionScreen from './src/screens/SubscriptionScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import DiscoveryScreen from './src/screens/DiscoveryScreen';
 
@@ -39,7 +30,6 @@ const App: React.FC = () => {
   console.log('--- YANA APP STARTING ---');
   const [user, setUser] = useState<UserState>(INITIAL_USER_STATE);
   const [isLoading, setIsLoading] = useState(true);
-  const [showSubscription, setShowSubscription] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
 
   // Load user data from AsyncStorage
@@ -99,71 +89,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const units = useMemo(() => {
-    return Array.from({ length: 12 }).map((_, ui) => {
-      const unitNum = ui;
-      let themeName = t(`unit_${unitNum}_name` as TranslationKey);
-      let themeSub = t(`unit_${unitNum}_sub` as TranslationKey);
 
-      // Language-specific overrides (now applying Alphabet et Bases to all languages for Unit 0)
-      if (unitNum === 0) {
-        themeSub = "Alphabet et Bases";
-      }
-
-      // Get lesson data for the current language to extract real titles
-      const lang = (user.currentLanguage || 'wolof').toLowerCase();
-      const unitData =
-        unitNum === 0 ? (UNIT_0_STATIC_DATA as any)[lang] :
-          unitNum === 1 ? (UNIT_1_STATIC_DATA as any)[lang] :
-            unitNum === 2 ? (UNIT_2_STATIC_DATA as any)[lang] :
-              unitNum === 3 ? (UNIT_3_STATIC_DATA as any)[lang] :
-                unitNum === 4 ? (UNIT_4_STATIC_DATA as any)[lang] :
-                  unitNum === 5 ? (UNIT_5_STATIC_DATA as any)[lang] :
-                    null;
-
-      const lessonKeys = unitData ? Object.keys(unitData) : [];
-
-      const lessons: Lesson[] = Array.from({ length: 10 }).map((_, li) => {
-        let lessonTitle = `${t('lesson')} ${li + 1}`;
-
-        if (unitNum === 11) {
-          // For unit 11, each of the first 10 lessons is a review of units 1-10
-          lessonTitle = `Révision Unité ${li + 1}`;
-        } else if (lessonKeys[li]) {
-          // If we have specific content for this lesson in the data files, use that TITLE!
-          lessonTitle = lessonKeys[li];
-        } else if (unitNum >= 0 && unitNum <= 3) {
-          lessonTitle = t(`unit_${unitNum}_lesson_${li + 1}` as TranslationKey);
-        }
-
-        return {
-          id: `u${unitNum}-l${li + 1}`,
-          title: lessonTitle,
-          lessonKey: unitNum === 11 ? `unit_${li + 1}_review_lesson` : `unit_${unitNum}_lesson_${li + 1}`,
-          isCompleted: user.completedLessons.includes(`u${unitNum}-l${li + 1}`),
-          exercises: []
-        };
-      });
-
-      lessons.push({
-        id: `u${unitNum}-story`,
-        title: t('unit_evaluation'),
-        lessonKey: `unit_${unitNum}_evaluation`,
-        isCompleted: user.completedLessons.includes(`u${unitNum}-story`),
-        exercises: [],
-        isStory: true
-      });
-
-      return {
-        id: unitNum,
-        title: unitNum === 0 ? themeName : `${t('unit')} ${unitNum}`,
-        theme: `${themeName} - ${themeSub}`,
-        themeName,
-        themeSub,
-        lessons
-      };
-    });
-  }, [user.completedLessons, user.interfaceLanguage, user.currentLanguage, t]);
 
   if (isLoading) {
     return (
@@ -242,7 +168,7 @@ const App: React.FC = () => {
               tabBarIcon: () => <Text style={styles.tabIcon}>📖</Text>,
             }}
           >
-            {() => <LearnScreen user={user} setUser={setUser} units={units} t={t} onShowSubscription={() => setShowSubscription(true)} />}
+            {() => <LearnScreen user={user} setUser={setUser} t={t} />}
           </Tab.Screen>
 
           <Tab.Screen
@@ -262,7 +188,7 @@ const App: React.FC = () => {
               tabBarIcon: () => <Text style={styles.tabIcon}>🌍</Text>,
             }}
           >
-            {() => <DiscoveryScreen user={user} setUser={setUser} t={t} onShowSubscription={() => setShowSubscription(true)} />}
+            {() => <DiscoveryScreen user={user} setUser={setUser} t={t} />}
           </Tab.Screen>
 
           <Tab.Screen
@@ -272,7 +198,7 @@ const App: React.FC = () => {
               tabBarIcon: () => <Text style={styles.tabIcon}>🏆</Text>,
             }}
           >
-            {() => <TutoringScreen user={user} setUser={setUser} t={t} onShowSubscription={() => setShowSubscription(true)} />}
+            {() => <TutoringScreen user={user} setUser={setUser} t={t} />}
           </Tab.Screen>
 
           <Tab.Screen
@@ -287,22 +213,11 @@ const App: React.FC = () => {
                 user={user}
                 setUser={setUser}
                 t={t}
-                onShowSubscription={() => setShowSubscription(true)}
                 onShowSettings={() => setShowSettings(true)}
               />
             )}
           </Tab.Screen>
         </Tab.Navigator>
-
-        {showSubscription && (
-          <View style={[StyleSheet.absoluteFill, { zIndex: 9999, elevation: 10 }]}>
-            <SubscriptionScreen
-              user={user}
-              onClose={() => setShowSubscription(false)}
-              t={t}
-            />
-          </View>
-        )}
 
         {showSettings && (
           <View style={[StyleSheet.absoluteFill, { zIndex: 9999, elevation: 10 }]}>

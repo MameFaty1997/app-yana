@@ -43,12 +43,6 @@ const LevelStep: React.FC<LevelStepProps> = ({
             titleKey: 'level_advanced' as TranslationKey,
             descriptionKey: 'desc_advanced' as TranslationKey,
         },
-        {
-            id: 'native' as ExperienceLevel,
-            emoji: '🏆',
-            titleKey: 'level_native' as TranslationKey,
-            descriptionKey: 'desc_native' as TranslationKey,
-        },
     ], []);
 
     return (

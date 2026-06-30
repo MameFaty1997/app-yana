@@ -28,10 +28,9 @@ interface TutoringScreenProps {
     user: UserState;
     setUser: Dispatch<SetStateAction<UserState>>;
     t: (key: TranslationKey) => string;
-    onShowSubscription: () => void;
 }
 
-const TutoringScreen: React.FC<TutoringScreenProps> = ({ user, setUser, t, onShowSubscription }) => {
+const TutoringScreen: React.FC<TutoringScreenProps> = ({ user, setUser, t }) => {
     const navigation = useNavigation();
     const [isApplicationModalVisible, setIsApplicationModalVisible] = useState(false);
     const [isMarketplaceVisible, setIsMarketplaceVisible] = useState(false);
@@ -237,7 +236,6 @@ const TutoringScreen: React.FC<TutoringScreenProps> = ({ user, setUser, t, onSho
                     setUser={setUser}
                     onClose={() => setIsMarketplaceVisible(false)}
                     t={t}
-                    onShowSubscription={onShowSubscription}
                 />
             </Modal>
         </View>

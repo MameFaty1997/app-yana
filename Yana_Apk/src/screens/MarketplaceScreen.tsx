@@ -26,12 +26,52 @@ interface MarketplaceScreenProps {
     setUser: React.Dispatch<React.SetStateAction<UserState>>;
     onClose: () => void;
     t: (key: TranslationKey) => string;
-    onShowSubscription?: () => void;
 }
 
-const MarketplaceScreen: React.FC<MarketplaceScreenProps> = ({ user, setUser, onClose, t, onShowSubscription }) => {
+const MarketplaceScreen: React.FC<MarketplaceScreenProps> = ({ user, setUser, onClose, t }) => {
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [selectedPack, setSelectedPack] = useState<{ id: string, amount: number, price: string, bonus: string | null } | null>(null);
+    const [selectedLangToBuy, setSelectedLangToBuy] = useState<any | null>(null);
+
+    const handlePaymentSuccess = () => {
+        setShowPaymentModal(false);
+        if (selectedLangToBuy) {
+            const lang = selectedLangToBuy;
+            setUser(prev => ({
+                ...prev,
+                languageProgressions: {
+                    ...prev.languageProgressions,
+                    [lang.id]: {
+                        level: 1,
+                        xp: 0,
+                        completedLessons: [],
+                        completedUnits: [],
+                        lessonScores: {}
+                    }
+                }
+            }));
+            Alert.alert("Achat réussi", `Félicitations ! Vous avez débloqué la langue ${lang.name}. 🎉`);
+            setSelectedLangToBuy(null);
+        } else if (selectedPack) {
+            const pack = selectedPack;
+            setUser(prev => ({
+                ...prev,
+                shells: (prev.shells || 0) + pack.amount
+            }));
+            Alert.alert("Achat réussi", `Vous avez bien reçu vos ${pack.amount} Cauris ! 💰`);
+            setSelectedPack(null);
+        }
+    };
+
+    const triggerPayment = (method: string) => {
+        Alert.alert(
+            "Paiement en cours",
+            `Paiement simulé réussi via ${method}.`,
+            [
+                { text: "OK", onPress: () => handlePaymentSuccess() }
+            ]
+        );
+    };
 
     const caurisPacks = [
         { id: 'pack1', amount: 100, price: '1 000 FCFA', bonus: null },
@@ -202,11 +242,37 @@ const MarketplaceScreen: React.FC<MarketplaceScreenProps> = ({ user, setUser, on
                     <View style={styles.grid}>
                         {LANGUAGES.map((lang) => {
                             const learnedLangs = Object.keys(user.languageProgressions || {});
-                            const totalLangs = Array.from(new Set([...learnedLangs, user.currentLanguage || ''])).filter(Boolean);
                             const isLearned = learnedLangs.includes(lang.id) || user.currentLanguage === lang.id;
-                            const isFreeUnlock = (!user.user_plan || user.user_plan === 'freemium') && totalLangs.length < 3;
-                            const caurisCost = isFreeUnlock ? 0 : 1000;
-                            const displayPrice = isFreeUnlock ? 'Gratuit' : '1000 ';
+
+                            if (!lang.isAvailable) {
+                                return (
+                                    <View key={lang.id} style={styles.cardTouch}>
+                                        <View style={[styles.languageCard, { opacity: 0.6 }]}>
+                                            <View style={styles.characterContainer}>
+                                                <Image
+                                                    source={lang.image}
+                                                    style={styles.characterImage}
+                                                    resizeMode="cover"
+                                                />
+                                                <View style={[styles.corner, styles.topLeft, { borderColor: '#94A3B8' }]} />
+                                                <View style={[styles.corner, styles.topRight, { borderColor: '#94A3B8' }]} />
+                                                <View style={[styles.corner, styles.bottomLeft, { borderColor: '#94A3B8' }]} />
+                                                <View style={[styles.corner, styles.bottomRight, { borderColor: '#94A3B8' }]} />
+                                            </View>
+                                            <View style={styles.infoBox}>
+                                                <Text style={[styles.languageName, { color: '#64748B' }]} numberOfLines={1}>
+                                                    {lang.name}
+                                                </Text>
+                                                <View style={styles.actionContainer}>
+                                                    <View style={[styles.actionBtn, { backgroundColor: '#E2E8F0', paddingHorizontal: 8 }]}>
+                                                        <Text style={[styles.actionBtnText, { color: '#64748B', fontSize: 11 }]}>Pour bientôt</Text>
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    </View>
+                                );
+                            }
 
                             return (
                                 <View key={lang.id} style={styles.cardTouch}>
@@ -244,43 +310,24 @@ const MarketplaceScreen: React.FC<MarketplaceScreenProps> = ({ user, setUser, on
                                                             { backgroundColor: pressed ? '#FEF3C7' : '#FFFBEB' }
                                                         ]}
                                                         onPress={() => {
-                                                            const userShells = user.shells || 0;
-                                                            if (userShells >= caurisCost) {
-                                                                Alert.alert(
-                                                                    t('buy_lang' as TranslationKey) || 'Débloquer la langue',
-                                                                    isFreeUnlock ? `Voulez-vous débloquer le ${lang.name} gratuitement ?` : `Voulez-vous débloquer le ${lang.name} pour ${caurisCost} Cauris ?`,
-                                                                    [
-                                                                        { text: t('cancel' as TranslationKey) || 'Annuler', style: 'cancel' },
-                                                                        {
-                                                                            text: t('validate' as TranslationKey) || 'Confirmer',
-                                                                            onPress: () => {
-                                                                                setUser(prev => ({
-                                                                                    ...prev,
-                                                                                    shells: (prev.shells || 0) - caurisCost,
-                                                                                    languageProgressions: {
-                                                                                        ...prev.languageProgressions,
-                                                                                        [lang.id]: {
-                                                                                            level: 1,
-                                                                                            xp: 0,
-                                                                                            completedLessons: [],
-                                                                                            completedUnits: [],
-                                                                                            lessonScores: {}
-                                                                                        }
-                                                                                    }
-                                                                                }));
-                                                                                Alert.alert("Succès", t('buy_lang_success' as TranslationKey) || 'Langue débloquée avec succès !');
-                                                                            }
+                                                            Alert.alert(
+                                                                t('buy_lang' as TranslationKey) || 'Débloquer la langue',
+                                                                `Voulez-vous débloquer le ${lang.name} pour 6 500 FCFA ?`,
+                                                                [
+                                                                    { text: t('cancel' as TranslationKey) || 'Annuler', style: 'cancel' },
+                                                                    {
+                                                                        text: t('validate' as TranslationKey) || 'Confirmer',
+                                                                        onPress: () => {
+                                                                            setSelectedLangToBuy(lang);
+                                                                            setShowPaymentModal(true);
                                                                         }
-                                                                    ]
-                                                                );
-                                                            } else {
-                                                                Alert.alert("Erreur", t('insufficient_cauris' as TranslationKey) || "Pas assez de Cauris !");
-                                                            }
+                                                                    }
+                                                                ]
+                                                            );
                                                         }}
                                                     >
                                                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                                            <Text style={[styles.actionBtnText, { color: '#D97706' }]}>{displayPrice}</Text>
-                                                            {!isFreeUnlock && <Image source={GOLD_CAURI_IMAGE} style={{ width: 16, height: 16 }} resizeMode="contain" />}
+                                                            <Text style={[styles.actionBtnText, { color: '#D97706' }]}>6 500 FCFA</Text>
                                                         </View>
                                                     </Pressable>
                                                 )}
@@ -293,27 +340,6 @@ const MarketplaceScreen: React.FC<MarketplaceScreenProps> = ({ user, setUser, on
                     </View>
                 </View>
 
-                {/* Premium Banner */}
-                {onShowSubscription && user.user_plan !== 'premium' && (
-                    <TouchableOpacity
-                        style={styles.premiumBanner}
-                        onPress={() => {
-                            onClose();
-                            onShowSubscription();
-                        }}
-                    >
-                        <View style={styles.premiumIconBox}>
-                            <Text style={styles.premiumIcon}>👑</Text>
-                        </View>
-                        <View style={styles.premiumInfo}>
-                            <Text style={styles.premiumTitle}>Passer à Premium</Text>
-                            <Text style={styles.premiumDesc}>Débloque tout en illimité !</Text>
-                        </View>
-                        <View style={styles.premiumArrowBox}>
-                            <Text style={styles.premiumArrow}>›</Text>
-                        </View>
-                    </TouchableOpacity>
-                )}
 
                 <View style={{ height: 40 }} />
             </ScrollView>
@@ -335,14 +361,15 @@ const MarketplaceScreen: React.FC<MarketplaceScreenProps> = ({ user, setUser, on
                         </View>
 
                         <Text style={styles.modalSubtitle}>
-                            Choisissez comment vous souhaitez régler votre pack de {selectedPack?.amount} Cauris ({selectedPack?.price}).
+                            {selectedLangToBuy 
+                                ? `Choisissez comment vous souhaitez régler votre achat de la langue ${selectedLangToBuy.name} (6 500 FCFA).`
+                                : `Choisissez comment vous souhaitez régler votre pack de ${selectedPack?.amount} Cauris (${selectedPack?.price}).`}
                         </Text>
 
                         <TouchableOpacity
                             style={styles.paymentOption}
                             onPress={() => {
-                                setShowPaymentModal(false);
-                                Alert.alert("Intégration Mobile Money", "L'API Mobile Money sera connectée ici prochainement.");
+                                triggerPayment("Mobile Money");
                             }}
                         >
                             <View style={[styles.paymentIconBox, { backgroundColor: '#FFF3E0' }]}>
@@ -358,8 +385,7 @@ const MarketplaceScreen: React.FC<MarketplaceScreenProps> = ({ user, setUser, on
                         <TouchableOpacity
                             style={styles.paymentOption}
                             onPress={() => {
-                                setShowPaymentModal(false);
-                                Alert.alert("Intégration Paiement", "L'API de paiement par Carte Bancaire sera connectée ici prochainement.");
+                                triggerPayment("Carte Bancaire");
                             }}
                         >
                             <View style={[styles.paymentIconBox, { backgroundColor: '#E3F2FD' }]}>
@@ -591,7 +617,7 @@ const styles = StyleSheet.create({
     // Language Cards (from TargetLanguageStep)
     cardTouch: {
         width: '47%',
-        aspectRatio: isSmallDevice ? 0.75 : 0.7,
+        aspectRatio: isSmallDevice ? 0.95 : 0.9,
         marginBottom: 15,
     },
     languageCard: {
@@ -650,7 +676,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderTopWidth: 1,
         borderTopColor: '#e0e0e0',
-        minHeight: isSmallDevice ? 65 : 80,
+        minHeight: isSmallDevice ? 50 : 65,
         justifyContent: 'center',
     },
     languageName: {

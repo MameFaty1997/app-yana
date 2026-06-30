@@ -23,7 +23,7 @@ import AddWordModal from '../components/AddWordModal';
 import TongueTwisterModal from '../components/TongueTwisterModal';
 import XPProgressBar from '../components/ui/XPProgressBar';
 import { GOLD_CAURI_IMAGE } from '../constants';
-import VoiceContributionCard from '../components/VoiceContributionCard';
+
 
 const { width } = Dimensions.get('window');
 const isSmallDevice = width < 375;
@@ -206,29 +206,7 @@ const CommunityScreen: React.FC<CommunityScreenProps> = ({ user, setUser, t }) =
                     </View>
                 </View>
 
-                <VoiceContributionCard
-                    phrase="Korité Talaata lay doon réne"
-                    translation="L'Aïd sera un mardi cette année"
-                    language="wol"
-                    localAudioSource={require('../../assets/audio/wol_native.wav')}
-                    t={t}
-                />
 
-                <VoiceContributionCard
-                    phrase="Tiga ka di Maninkaw ye."
-                    translation="Les cacahuètes sont appréciées des Malinkés"
-                    language="bam"
-                    localAudioSource={require('../../assets/audio/bam_native.wav')}
-                    t={t}
-                />
-
-                <VoiceContributionCard
-                    phrase="So a ƴettii sappo, a sowii ɗum laabi sappo, tottat maa ko teemedere."
-                    translation="Si tu prends dix et le multiplies dix fois, ça donne cent"
-                    language="pulaar"
-                    localAudioSource={require('../../assets/audio/fuf_native.wav')}
-                    t={t}
-                />
 
                 {/* Create Post Card */}
                 <View style={styles.createPostCard}>

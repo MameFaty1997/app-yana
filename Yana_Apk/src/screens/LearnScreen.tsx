@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState, useMemo, Dispatch, SetStateAction } from 'react';
+import { useState, useMemo, Dispatch, SetStateAction, useCallback } from 'react';
 import {
     View,
     Text,
@@ -30,15 +30,14 @@ import { audioService } from '../services/audioService';
 import { LinearGradient } from 'expo-linear-gradient';
 import { FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { isTablet, isSmallDevice, isExtraSmallDevice, SCREEN_WIDTH, SCREEN_HEIGHT, MAX_CONTENT_WIDTH } from '../utils/responsive';
+import { generateCurriculum } from '../data/reference/curriculum';
 
 import Constants from 'expo-constants';
 
 interface LearnScreenProps {
     user: UserState;
     setUser: Dispatch<SetStateAction<UserState>>;
-    units: Unit[];
     t: (key: TranslationKey) => string;
-    onShowSubscription?: () => void;
 }
 
 const VipEnergyModal: React.FC<{ visible: boolean, onClose: () => void, onUpgrade: () => void, t: any }> = ({ visible, onClose, onUpgrade, t }) => {
@@ -84,9 +83,13 @@ const VipEnergyModal: React.FC<{ visible: boolean, onClose: () => void, onUpgrad
     );
 };
 
-const LearnScreen: React.FC<LearnScreenProps> = ({ user, setUser, units, t, onShowSubscription }) => {
+const LearnScreen: React.FC<LearnScreenProps> = ({ user, setUser, t }) => {
     const navigation = useNavigation();
-    const [activeLesson, setActiveLesson] = useState<{ unitId: number, lesson: Lesson, isStory: boolean } | null>(null);
+    const [activeLevel, setActiveLevel] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
+    const [expandedModuleId, setExpandedModuleId] = useState<number | null>(1);
+    const [expandedChapterId, setExpandedChapterId] = useState<string | null>('beginner_m1_c1');
+
+    const [activeLesson, setActiveLesson] = useState<{ unitId: number, chapterId: string, lesson: Lesson, isStory: boolean } | null>(null);
     const [currentExerciseIdx, setCurrentExerciseIdx] = useState(0);
     const [correctCount, setCorrectCount] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
@@ -100,22 +103,52 @@ const LearnScreen: React.FC<LearnScreenProps> = ({ user, setUser, units, t, onSh
     const [showStreak, setShowStreak] = useState(false);
     const [noHeartsVisible, setNoHeartsVisible] = useState(false);
 
+    // Check if beginner level is completely finished
+    const isBeginnerCompleted = useMemo(() => {
+        const begCurriculum = generateCurriculum('beginner', t, user.currentLanguage, user.completedLessons);
+        return begCurriculum.every(u => u.chapters.every(ch => ch.lessons.every(l => l.isCompleted)));
+    }, [t, user.currentLanguage, user.completedLessons]);
+
+    // Check if intermediate level is completely finished
+    const isIntermediateCompleted = useMemo(() => {
+        const intCurriculum = generateCurriculum('intermediate', t, user.currentLanguage, user.completedLessons);
+        return intCurriculum.every(u => u.chapters.every(ch => ch.lessons.every(l => l.isCompleted)));
+    }, [t, user.currentLanguage, user.completedLessons]);
+
+    // Check if a level is unlocked
+    const isLevelUnlocked = useCallback((lvl: 'beginner' | 'intermediate' | 'advanced') => {
+        if (lvl === 'beginner') return true;
+        if (lvl === 'intermediate') {
+            return user.experienceLevel === 'intermediate' || user.experienceLevel === 'advanced' || isBeginnerCompleted;
+        }
+        if (lvl === 'advanced') {
+            return user.experienceLevel === 'advanced' || isIntermediateCompleted;
+        }
+        return false;
+    }, [user.experienceLevel, isBeginnerCompleted, isIntermediateCompleted]);
+
+    // Locally generate units based on activeLevel
+    const units = useMemo(() => {
+        return generateCurriculum(activeLevel, t, user.currentLanguage, user.completedLessons);
+    }, [activeLevel, t, user.currentLanguage, user.completedLessons]);
+
     // Filter units based on user state
     const displayUnits = useMemo(() => {
         return units.map((u, index) => {
-            const isCompleted = u.lessons.every(l => user.completedLessons.includes(l.id));
-            const isFirstUnfinished = index === 0 || units[index - 1].lessons.every(l => user.completedLessons.includes(l.id));
+            const isCompleted = u.chapters.every(ch => ch.lessons.every(l => l.isCompleted));
+            const isFirstUnfinished = index === 0 || units[index - 1].chapters.every(ch => ch.lessons.every(l => l.isCompleted));
+            const completedChaptersCount = u.chapters.filter(ch => ch.lessons.every(l => l.isCompleted)).length;
 
             return {
                 ...u,
                 status: isCompleted ? 'completed' : (isFirstUnfinished ? 'active' : 'locked'),
-                completedCount: u.lessons.filter(l => user.completedLessons.includes(l.id)).length,
-                totalLessons: u.lessons.length,
+                completedCount: completedChaptersCount,
+                totalChapters: u.chapters.length,
             };
         });
-    }, [units, user.completedLessons]);
+    }, [units]);
 
-    const startLesson = async (unitId: number, lesson: Lesson) => {
+    const startLesson = async (unitId: number, chapterId: string, lesson: Lesson) => {
         if (user.hearts <= 0 && user.user_plan === 'freemium') {
             setNoHeartsVisible(true);
             return;
@@ -124,9 +157,10 @@ const LearnScreen: React.FC<LearnScreenProps> = ({ user, setUser, units, t, onSh
         setIsLoading(true);
         try {
             const unit = units.find(u => u.id === unitId);
+            const chapter = unit?.chapters.find(ch => ch.id === chapterId);
             const exercises = await generateLessonExercises(
                 user.currentLanguage,
-                unit?.theme || "Bases",
+                chapter?.title || unit?.theme || "Bases",
                 lesson.isStory || false,
                 user.interfaceLanguage,
                 lesson.title,
@@ -166,6 +200,7 @@ const LearnScreen: React.FC<LearnScreenProps> = ({ user, setUser, units, t, onSh
                 setLessonPhase('intro');
                 setActiveLesson({
                     unitId,
+                    chapterId,
                     isStory: lesson.isStory || false,
                     lesson: { ...lesson, exercises: practiceEx }
                 });
@@ -279,7 +314,7 @@ const LearnScreen: React.FC<LearnScreenProps> = ({ user, setUser, units, t, onSh
                             variant="primary"
                             size="lg"
                             fullWidth
-                            onPress={() => startLesson(activeLesson.unitId, activeLesson.lesson)}
+                            onPress={() => startLesson(activeLesson.unitId, activeLesson.chapterId, activeLesson.lesson)}
                         />
                     )}
 
@@ -441,110 +476,223 @@ const LearnScreen: React.FC<LearnScreenProps> = ({ user, setUser, units, t, onSh
                 </View>
 
                 {/* Units Path */}
-                <View style={[styles.pathContainer, { paddingHorizontal: 0 }]}>
-                    {displayUnits.map((unit, index) => {
-                        const isCompleted = unit.status === 'completed';
-                        const isActive = unit.status === 'active';
-                        const isLocked = unit.status === 'locked';
+                {/* Level Tabs Selector */}
+                <View style={styles.levelSelectorContainer}>
+                    {(['beginner', 'intermediate', 'advanced'] as const).map((lvl) => {
+                        const isLvlActive = activeLevel === lvl;
+                        const isLvlUnlocked = isLevelUnlocked(lvl);
+                        const lvlLabel = lvl === 'beginner' ? 'Débutant 0' : lvl === 'intermediate' ? 'Intermédiaire' : 'Avancé';
+                        const lvlIcon = isLvlUnlocked
+                            ? (lvl === 'beginner' ? '🌱' : lvl === 'intermediate' ? '📚' : '🎯')
+                            : '🔒';
+                        return (
+                            <TouchableOpacity
+                                key={lvl}
+                                style={[
+                                    styles.levelTabButton,
+                                    isLvlActive && styles.levelTabButtonActive,
+                                    !isLvlUnlocked && { opacity: 0.6 }
+                                ]}
+                                onPress={() => {
+                                    if (!isLvlUnlocked) {
+                                        let prevLvl = lvl === 'intermediate' ? 'Débutant 0' : 'Intermédiaire';
+                                        Alert.alert(
+                                            "Niveau verrouillé",
+                                            `Veuillez d'abord terminer toutes les leçons du niveau ${prevLvl} !`
+                                        );
+                                        return;
+                                    }
+                                    setActiveLevel(lvl);
+                                    setExpandedModuleId(1);
+                                    setExpandedChapterId(`${lvl}_m1_c1`);
+                                    audioService.playSound('click');
+                                }}
+                            >
+                                <Text style={[
+                                    styles.levelTabText,
+                                    isLvlActive && styles.levelTabTextActive,
+                                    !isLvlUnlocked && { color: '#94A3B8' }
+                                ]}>
+                                    {lvlIcon} {lvlLabel}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
 
-                        const unitBannerColor = isLocked ? COLORS.gray[300] : (isCompleted ? COLORS.success : COLORS.primary);
-                        const unitBannerBorderColor = isLocked ? COLORS.gray[400] : (isCompleted ? '#2E7D32' : '#E65100');
-                        const headerTextColor = isLocked ? COLORS.gray[500] : COLORS.white;
+                {/* Modules Accordion Grid */}
+                <View style={[styles.pathContainer, { paddingHorizontal: 15 }]}>
+                    {displayUnits.map((module) => {
+                        const isExpanded = expandedModuleId === module.id;
+                        const isCompleted = module.status === 'completed';
+                        const isActive = module.status === 'active';
+                        const isLocked = module.status === 'locked';
+
+                        const cardColor = isLocked ? '#F1F5F9' : (isCompleted ? '#E8F5E9' : '#FFFFFF');
+                        const borderThemeColor = isLocked ? '#CBD5E1' : (isCompleted ? '#81C784' : COLORS.primary);
 
                         return (
-                            <View key={unit.id} style={styles.unitSection}>
-                                {/* SECTION HEADER */}
-                                <View style={[styles.unitBanner, { backgroundColor: unitBannerColor, borderBottomColor: unitBannerBorderColor }]}>
-                                    <View style={styles.unitBannerHeader}>
-                                        <Text style={[styles.unitBannerLabel, { color: headerTextColor }]}>
-                                            {t('section_unit_label' as TranslationKey)} {index + 1}, {t('unit' as TranslationKey)} {unit.id}
-                                        </Text>
-                                        <TouchableOpacity style={[
-                                            styles.unitBannerButton,
-                                            { backgroundColor: isLocked ? COLORS.gray[400] : (isCompleted ? '#4CAF50' : '#F57C00') }
-                                        ]}>
-                                            <FontAwesome5 name="list-alt" size={16} color={isLocked ? COLORS.gray[300] : COLORS.white} />
-                                        </TouchableOpacity>
-                                    </View>
-                                    <Text style={[styles.unitBannerTitle, { color: headerTextColor }]}>{unit.title}</Text>
-                                    <Text style={[styles.unitBannerSubtitle, { color: headerTextColor }]}>{unit.theme}</Text>
-
-                                    {isActive && (
-                                        <View style={styles.progressRow}>
-                                            <View style={styles.progressBarBg}>
-                                                <View style={[
-                                                    styles.progressBarFill,
-                                                    { width: `${(unit.completedCount / unit.totalLessons) * 100}%` }
-                                                ]} />
-                                            </View>
-                                            <Text style={styles.progressFraction}>
-                                                {unit.completedCount}/{unit.totalLessons}
-                                            </Text>
+                            <View key={module.id} style={[styles.moduleCard, { backgroundColor: cardColor, borderColor: borderThemeColor }]}>
+                                {/* Module Header */}
+                                <TouchableOpacity
+                                    activeOpacity={0.7}
+                                    style={styles.moduleHeader}
+                                    disabled={isLocked}
+                                    onPress={() => {
+                                        setExpandedModuleId(isExpanded ? null : module.id);
+                                        audioService.playSound('click');
+                                    }}
+                                >
+                                    <View style={styles.moduleHeaderLeft}>
+                                        <View style={[styles.moduleBadge, { backgroundColor: isLocked ? '#94A3B8' : (isCompleted ? '#2E7D32' : COLORS.primary) }]}>
+                                            <Text style={styles.moduleBadgeText}>M{module.id}</Text>
                                         </View>
-                                    )}
-                                </View>
+                                        <View style={styles.moduleTitleBox}>
+                                            <Text style={[styles.moduleTitle, isLocked && { color: '#94A3B8' }]}>{module.title}</Text>
+                                            <Text style={[styles.moduleTheme, isLocked && { color: '#94A3B8' }]}>{module.theme}</Text>
+                                        </View>
+                                    </View>
 
-                                {/* LE PARCOURS DES 11 LEÇONS (visible for all units) */}
-                                <View style={styles.lessonsPathContainer}>
-                                    {unit.lessons.map((lesson, lIndex) => {
-                                        const isEvaluation = lIndex === 10;
-                                        const isLessonCompleted = user.completedLessons.includes(lesson.id);
+                                    <View style={styles.moduleHeaderRight}>
+                                        {isLocked ? (
+                                            <FontAwesome5 name="lock" size={14} color="#94A3B8" />
+                                        ) : (
+                                            <>
+                                                <Text style={[styles.moduleProgressText, isCompleted && { color: '#2E7D32' }]}>
+                                                    {module.completedCount}/{module.totalChapters} Ch.
+                                                </Text>
+                                                <FontAwesome5 name={isExpanded ? 'chevron-up' : 'chevron-down'} size={14} color={COLORS.secondary} />
+                                            </>
+                                        )}
+                                    </View>
+                                </TouchableOpacity>
 
-                                        const isLessonActive = isActive && !isLessonCompleted &&
-                                            (lIndex === 0 || user.completedLessons.includes(unit.lessons[lIndex - 1].id));
+                                {/* Module Progress Bar */}
+                                {isExpanded && isActive && (
+                                    <View style={styles.moduleProgressWrapper}>
+                                        <View style={styles.progressBarBg}>
+                                            <View style={[styles.progressBarFill, { width: `${(module.completedCount / module.totalChapters) * 100}%` }]} />
+                                        </View>
+                                    </View>
+                                )}
 
-                                        const isLessonLocked = isLocked || (!isLessonCompleted && !isLessonActive);
+                                {/* Chapters List */}
+                                {isExpanded && (
+                                    <View style={styles.chaptersListContainer}>
+                                        {module.chapters.map((chapter, cIndex) => {
+                                            const isChExpanded = expandedChapterId === chapter.id;
+                                            const isChCompleted = chapter.lessons.every(l => l.isCompleted);
+                                            const isChActive = isActive && (cIndex === 0 || module.chapters[cIndex - 1].lessons.every(l => l.isCompleted));
+                                            const isChLocked = isLocked || (!isChCompleted && !isChActive);
 
-                                        // Winding pattern offsets map (Duolingo style)
-                                        const baseCurveOffsets = [0, 30, 60, 35, 0, -35, -60, -30, 0, 35, 60];
-                                        const curveScale = isTablet ? 1.4 : 1;
-                                        const offset = (baseCurveOffsets[lIndex] || 0) * curveScale;
+                                            const chCompletedCount = chapter.lessons.filter(l => l.isCompleted).length;
+                                            const chTotalCount = chapter.lessons.length;
 
-                                        return (
-                                            <TouchableOpacity
-                                                key={lesson.id}
-                                                style={[
-                                                    styles.lessonNodeWrapper,
-                                                    { transform: [{ translateX: offset }] }
-                                                ]}
-                                                disabled={isLessonLocked}
-                                                onPress={() => startLesson(unit.id, lesson)}
-                                            >
-                                                <View style={[
-                                                    styles.lessonNode,
-                                                    isLessonCompleted && styles.lessonNodeCompleted,
-                                                    isLessonActive && styles.lessonNodeActive,
-                                                    isLessonLocked && styles.lessonNodeLocked,
-                                                    isEvaluation && styles.lessonNodeEvaluation
-                                                ]}>
-                                                    {isEvaluation ? (
-                                                        <FontAwesome5 name={isLessonCompleted ? 'trophy' : 'crown'} size={isSmallDevice ? 24 : 32} color={isLessonLocked ? COLORS.gray[400] : COLORS.white} />
-                                                    ) : isLessonCompleted ? (
-                                                        <FontAwesome5 name="check" size={isSmallDevice ? 22 : 28} color={COLORS.white} />
-                                                    ) : isLessonActive ? (
-                                                        <FontAwesome5 name="star" size={isSmallDevice ? 22 : 28} color={COLORS.white} />
-                                                    ) : (
-                                                        <View style={styles.lessonNodeLockedInner} />
-                                                    )}
-
-                                                    {/* If it's the active lesson, render Bayo jumping on it */}
-                                                    {isLessonActive && (
-                                                        <>
-                                                            <View style={styles.bayoAvatarContainer}>
-                                                                <View style={styles.bayoAvatarFloating}>
-                                                                    <Bayo size="lg" emotion="motivated" />
-                                                                </View>
+                                            return (
+                                                <View key={chapter.id} style={[styles.chapterItem, isChExpanded && styles.chapterItemExpanded]}>
+                                                    {/* Chapter Header */}
+                                                    <TouchableOpacity
+                                                        activeOpacity={0.7}
+                                                        style={styles.chapterHeader}
+                                                        disabled={isChLocked}
+                                                        onPress={() => {
+                                                            setExpandedChapterId(isChExpanded ? null : chapter.id);
+                                                            audioService.playSound('click');
+                                                        }}
+                                                    >
+                                                        <View style={styles.chapterHeaderLeft}>
+                                                            <FontAwesome5
+                                                                name={isChCompleted ? 'check-circle' : (isChActive ? 'play-circle' : 'lock')}
+                                                                size={18}
+                                                                color={isChCompleted ? '#2E7D32' : (isChActive ? COLORS.primary : '#94A3B8')}
+                                                                style={{ marginRight: 10 }}
+                                                            />
+                                                            <View style={{ flex: 1 }}>
+                                                                <Text style={[styles.chapterTitle, isChLocked && { color: '#94A3B8' }]}>
+                                                                    {chapter.title}
+                                                                </Text>
+                                                                <Text style={styles.chapterDesc}>{chapter.description}</Text>
                                                             </View>
-                                                            <View style={styles.startBadgeFloating}>
-                                                                <Text style={styles.startBadgeText}>{t('start' as TranslationKey)}</Text>
-                                                            </View>
-                                                        </>
+                                                        </View>
+                                                        <View style={styles.chapterHeaderRight}>
+                                                            {!isChLocked && (
+                                                                <>
+                                                                    <Text style={styles.chapterProgressText}>
+                                                                        {chCompletedCount}/{chTotalCount} L.
+                                                                    </Text>
+                                                                    <FontAwesome5 name={isChExpanded ? 'chevron-up' : 'chevron-down'} size={12} color="#64748B" />
+                                                                </>
+                                                            )}
+                                                        </View>
+                                                    </TouchableOpacity>
+
+                                                    {/* Chapter Winding Path */}
+                                                    {isChExpanded && (
+                                                        <View style={styles.lessonsPathContainer}>
+                                                            {chapter.lessons.map((lesson, lIndex) => {
+                                                                const isEvaluation = lesson.isStory;
+                                                                const isLessonCompleted = lesson.isCompleted;
+                                                                const isLessonActive = isChActive && !isLessonCompleted &&
+                                                                    (lIndex === 0 || chapter.lessons[lIndex - 1].isCompleted);
+
+                                                                const isLessonLocked = isChLocked || (!isLessonCompleted && !isLessonActive);
+
+                                                                // Winding pattern offsets map (Duolingo style)
+                                                                const baseCurveOffsets = [0, 30, 60, 35, 0, -35, -60, -30, 0, 35, 60];
+                                                                const curveScale = isTablet ? 1.4 : 1;
+                                                                const offset = (baseCurveOffsets[lIndex] || 0) * curveScale;
+
+                                                                return (
+                                                                    <TouchableOpacity
+                                                                        key={lesson.id}
+                                                                        style={[
+                                                                            styles.lessonNodeWrapper,
+                                                                            { transform: [{ translateX: offset }] }
+                                                                        ]}
+                                                                        disabled={isLessonLocked}
+                                                                        onPress={() => startLesson(module.id, chapter.id, lesson)}
+                                                                    >
+                                                                        <View style={[
+                                                                            styles.lessonNode,
+                                                                            isLessonCompleted && styles.lessonNodeCompleted,
+                                                                            isLessonActive && styles.lessonNodeActive,
+                                                                            isLessonLocked && styles.lessonNodeLocked,
+                                                                            isEvaluation && styles.lessonNodeEvaluation
+                                                                        ]}>
+                                                                            {isEvaluation ? (
+                                                                                <FontAwesome5 name={isLessonCompleted ? 'trophy' : 'crown'} size={isSmallDevice ? 22 : 28} color={isLessonLocked ? COLORS.gray[400] : COLORS.white} />
+                                                                            ) : isLessonCompleted ? (
+                                                                                <FontAwesome5 name="check" size={isSmallDevice ? 20 : 24} color={COLORS.white} />
+                                                                            ) : isLessonActive ? (
+                                                                                <FontAwesome5 name="star" size={isSmallDevice ? 20 : 24} color={COLORS.white} />
+                                                                            ) : (
+                                                                                <View style={styles.lessonNodeLockedInner} />
+                                                                            )}
+
+                                                                            {/* If it's the active lesson, render Bayo jumping on it */}
+                                                                            {isLessonActive && (
+                                                                                <>
+                                                                                    <View style={styles.bayoAvatarContainer}>
+                                                                                        <View style={styles.bayoAvatarFloating}>
+                                                                                            <Bayo size="lg" emotion="motivated" />
+                                                                                        </View>
+                                                                                    </View>
+                                                                                    <View style={styles.startBadgeFloating}>
+                                                                                        <Text style={styles.startBadgeText}>{t('start' as TranslationKey)}</Text>
+                                                                                    </View>
+                                                                                </>
+                                                                            )}
+                                                                        </View>
+                                                                    </TouchableOpacity>
+                                                                );
+                                                            })}
+                                                        </View>
                                                     )}
                                                 </View>
-                                            </TouchableOpacity>
-                                        );
-                                    })}
-                                </View>
+                                            );
+                                        })}
+                                    </View>
+                                )}
                             </View>
                         );
                     })}
@@ -587,7 +735,7 @@ const LearnScreen: React.FC<LearnScreenProps> = ({ user, setUser, units, t, onSh
                 onClose={() => setNoHeartsVisible(false)}
                 onUpgrade={() => {
                     setNoHeartsVisible(false);
-                    onShowSubscription?.();
+                    Alert.alert("YANA PRO", "Vous disposez déjà de l'accès Premium illimité !");
                 }}
                 t={t}
             />
@@ -1164,6 +1312,141 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: '900',
         fontVariant: ['tabular-nums'],
+    },
+    levelSelectorContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 15,
+        marginBottom: 15,
+        gap: 10,
+    },
+    levelTabButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        backgroundColor: '#F3F4F6',
+        borderRadius: 15,
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    levelTabButtonActive: {
+        backgroundColor: COLORS.secondaryLight,
+        borderColor: COLORS.primary,
+    },
+    levelTabText: {
+        fontSize: 12,
+        fontWeight: '900',
+        color: '#6B7280',
+    },
+    levelTabTextActive: {
+        color: COLORS.primary,
+    },
+    moduleCard: {
+        borderRadius: 25,
+        borderWidth: 2,
+        padding: 15,
+        marginBottom: 15,
+        backgroundColor: '#FFFFFF',
+        ...SHADOWS.md,
+    },
+    moduleHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    moduleHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    moduleBadge: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    moduleBadgeText: {
+        color: COLORS.white,
+        fontWeight: '900',
+        fontSize: 14,
+    },
+    moduleTitleBox: {
+        flex: 1,
+    },
+    moduleTitle: {
+        fontSize: 18,
+        fontWeight: '900',
+        color: COLORS.secondary,
+    },
+    moduleTheme: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#64748B',
+    },
+    moduleHeaderRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    moduleProgressText: {
+        fontSize: 12,
+        fontWeight: '900',
+        color: COLORS.secondary,
+    },
+    moduleProgressWrapper: {
+        marginTop: 15,
+        marginBottom: 5,
+    },
+    chaptersListContainer: {
+        marginTop: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#E2E8F0',
+        paddingTop: 10,
+        gap: 10,
+    },
+    chapterItem: {
+        backgroundColor: '#F8FAFC',
+        borderRadius: 20,
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#E2E8F0',
+    },
+    chapterItemExpanded: {
+        borderColor: COLORS.primary,
+        backgroundColor: '#FDF8F5',
+    },
+    chapterHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    chapterHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    chapterHeaderRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+    },
+    chapterTitle: {
+        fontSize: 14,
+        fontWeight: '900',
+        color: COLORS.secondary,
+    },
+    chapterDesc: {
+        fontSize: 11,
+        color: '#64748B',
+        fontWeight: '500',
+    },
+    chapterProgressText: {
+        fontSize: 11,
+        fontWeight: '900',
+        color: '#475569',
     },
 });
 

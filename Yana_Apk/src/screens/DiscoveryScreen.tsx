@@ -37,7 +37,6 @@ interface DiscoveryScreenProps {
     user: UserState;
     setUser: Dispatch<SetStateAction<UserState>>;
     t: (key: TranslationKey) => string;
-    onShowSubscription: () => void;
 }
 
 
@@ -123,7 +122,7 @@ import KaabuScreen from './KaabuScreen';
 import BainounkScreen from './BainounkScreen';
 import BallaabaScreen from './BallaabaScreen';
 
-const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ user, setUser, t, onShowSubscription }) => {
+const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ user, setUser, t }) => {
     const navigation = useNavigation();
     const [activeGame, setActiveGame] = React.useState<string | null>(null);
     const [isMarketplaceVisible, setIsMarketplaceVisible] = useState(false);
@@ -364,7 +363,6 @@ const DiscoveryScreen: React.FC<DiscoveryScreenProps> = ({ user, setUser, t, onS
                     setUser={setUser}
                     onClose={() => setIsMarketplaceVisible(false)}
                     t={t}
-                    onShowSubscription={onShowSubscription}
                 />
             </Modal>
         </View>

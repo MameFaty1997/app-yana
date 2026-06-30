@@ -64,13 +64,20 @@ export interface Lesson {
   isStory?: boolean;
 }
 
+export interface Chapter {
+  id: string;
+  title: string;
+  description?: string;
+  lessons: Lesson[];
+}
+
 export interface Unit {
   id: number;
   title: string;
   theme: string;
   themeName: string;
   themeSub: string;
-  lessons: Lesson[];
+  chapters: Chapter[];
 }
 
 export type PlanType = 'freemium' | 'student' | 'premium' | 'family';
